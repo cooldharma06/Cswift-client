@@ -37,8 +37,8 @@ class SwiftClient(FileSystemEventHandler):
         self._auth_url = a_url
         self._auth_version = a_version
         self.timeout = timeout
-
-
+        self.command = 'cd /home/cool ; swift --os-auth-url '+a_url+' --os-username '+u_name+' --os-password '+p_word+' --os-tenant-name '+t_name
+        print self.command
 
     def config_read():
         config = ConfigParser.ConfigParser()
@@ -82,11 +82,10 @@ class SwiftClient(FileSystemEventHandler):
     def init_container(self):
         # pu.db      
         flag = False
-        command = 'swift post cswift'
+        command = self.command+' post cswift'
         print 'init container is getting called'
-        try:
-#            connect = swiftclient.Connection(user=self._username, key=self._password, authurl=self._auth_url, auth_version=self._auth_version,retries=4)   
-
+        try: 
+#            pu.db
             for cont in self.connect.get_account()[1]:
             #    print cont
                 if (cont['name']=='cswift'):
@@ -97,31 +96,54 @@ class SwiftClient(FileSystemEventHandler):
             print 'Connection failed. Please contact your administrator',e
 
         if (flag == False):
-            subprocess.call(command,shell=True)
+            subprocess.call(command, shell=True)
             print 'Container got created'
 
 
             
-# upload object
+#  upload object
 #  default upload size '""" 1G """"'
-#  defualt syncing container is '' cswift '' 
+#  default syncing container is '' cswift '' 
+#  defult file path here is /home/cool/
 #
-    def upload_object(self,file_name):
+#
+    def object_action(self, event, file_path):
 #        pu.db
         container_name = 'cswift'
-        file1 = file_name
-        try:
-           command = 'swift upload '+container_name+' -S 1073741824'+' '+file1
-           print command 
-           subprocess.call(command,shell=True)
-           print 'Object -- ',file1,' ... is uploaded'
-        except Exception as e:
-            print 'Some know error, call administrator...',e
+        rel_path = '/home/cool'
+        filename  = os.path.relpath(file_path,rel_path)
+        if (event.event_type == 'created' and event.is_directory==True):
+            try:
+                command = self.command+' upload '+container_name+' '+filename
+		print command
+                subprocess.call(command, shell=True)
+                print 'Object --'
+            except Exception as e:
+                print 'some error occurred while uploading'
+
+        elif (event.event_type == 'modified'):
+            try:
+                command = self.command+' upload '+container_name+' -S 1073741824'+' '+filename
+                print command 
+                subprocess.call(command, shell=True)
+                print 'Object -- ',filename,' ... is uploaded'
+            except Exception as e:
+                print 'Some know error, call administrator...',e
+        elif (event.event_type == 'deleted'):
+            try:
+                command = self.command+' delete '+container_name+' '+filename
+                subprocess.call(command, shell=True)
+                print filename,' is removed from your both system and cloud'
+            except Exception as e:
+                print 'Some known error, just call admin...',e
+        else:
+            print 'unknown event got occured :-)'
 
 
-    def on_any_event(self,event):
+    def on_any_event(self, event):
         print 'Event got..',event
-          
+#        pu.db
+        self.object_action(event, event.src_path)
 
 
 
@@ -129,7 +151,7 @@ class SwiftClient(FileSystemEventHandler):
 
 if __name__ == '__main__':
     #conig_read() 
-    obj = SwiftClient('cool1','cool1','coolswift','http://10.0.2.15:5000/v2.0',2.0,20)
+    obj = SwiftClient('cool1', 'cool1', 'coolswift', 'http://10.0.2.15:5000/v2.0', 2.0, 20)
     auth_token = obj.keystone_authenticate()
     if(auth_token != None):
         obj.swift_connection()
@@ -139,7 +161,7 @@ if __name__ == '__main__':
     #_file_name = '/home/cool'
   
     observer = Observer()
-    observer.schedule(obj,path='/home/cool')  # ,recursive=True)
+    observer.schedule(obj, path='/home/cool', recursive=True)
     observer.start()
     try:
         while True:
