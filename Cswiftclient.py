@@ -37,7 +37,7 @@ class SwiftClient(FileSystemEventHandler):
         self._auth_url = a_url
         self._auth_version = a_version
         self.timeout = timeout
-        self.command = 'cd /home/cool ; swift --os-auth-url '+a_url+' --os-username '+u_name+' --os-password '+p_word+' --os-tenant-name '+t_name
+        self.command = 'cd /home/cool/ ; swift --os-auth-url '+a_url+' --os-username '+u_name+' --os-password '+p_word+' --os-tenant-name '+t_name
         print self.command
 
     def config_read():
@@ -99,8 +99,20 @@ class SwiftClient(FileSystemEventHandler):
             subprocess.call(command, shell=True)
             print 'Container got created'
 
+    def init_syncfolder(self):
+        path = '/home/cool'
+        command = 'mkdir -p "/home/cool"'
+        try:
+            if(os.path.exists(path)==True):
+                print 'Sync folder already exists'
+            else:
+                subprocess.call(command, shell=True)
+                print 'Sync folder got created..'
+        except Exception as e:
+            print 'Sync folder already exists...'
 
-            
+
+     
 #  upload object
 #  default upload size '""" 1G """"'
 #  default syncing container is '' cswift '' 
@@ -111,7 +123,7 @@ class SwiftClient(FileSystemEventHandler):
 #        pu.db
         container_name = 'cswift'
         rel_path = '/home/cool'
-        filename  = os.path.relpath(file_path,rel_path)
+        filename  = os.path.relpath(file_path, rel_path)
         if (event.event_type == 'created' and event.is_directory==True):
             try:
                 command = self.command+' upload '+container_name+' '+filename
@@ -157,6 +169,7 @@ if __name__ == '__main__':
         obj.swift_connection()
     else:
         print 'Connection failed'
+    obj.init_syncfolder()
     obj.init_container()
     #_file_name = '/home/cool'
   
