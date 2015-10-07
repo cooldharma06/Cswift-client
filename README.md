@@ -6,11 +6,11 @@ In future we will add more feature to this client
 
 
 Requirements:
-  python
-  python-swiftclient  
-  time
-  watchdog
-  ** openstack with swift enabled
+  * python
+  * python-swiftclient  
+  * time
+  * watchdog
+  * ** openstack with swift enabled
 
 
 What it does.?
