@@ -163,6 +163,7 @@ class SwiftClient(FileSystemEventHandler):
 
 if __name__ == '__main__':
     #conig_read() 
+    #     SwiftClient(username,password,tenantname, cloudurl, version, timeout)
     obj = SwiftClient('cool1', 'cool1', 'coolswift', 'http://10.0.2.15:5000/v2.0', 2.0, 20)
     auth_token = obj.keystone_authenticate()
     if(auth_token != None):
@@ -174,6 +175,7 @@ if __name__ == '__main__':
     #_file_name = '/home/cool'
   
     observer = Observer()
+    # /home/cool - syncing directory
     observer.schedule(obj, path='/home/cool', recursive=True)
     observer.start()
     try:
